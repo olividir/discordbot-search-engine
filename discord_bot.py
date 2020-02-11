@@ -6,8 +6,29 @@ import requests
 from bs4 import BeautifulSoup
 
 
-token = 'Your bot token here'
+token = 'Njc1Nzk2OTQxOTkyNDkzMDY2.XkKRKw.PxNSnopmQJFeRb2UFUkXwOEAlIg'
 client = commands.Bot(command_prefix='!')
+
+
+@client.command()
+async def info(ctx):
+    embed = discord.Embed(title="olisBot or Gary", description='Very annoying according to some Reddit users', color=0xeee657)
+    embed.add_field(name='Ólafur Víðir', value='olividir')
+    embed.add_field(name='Invite', value='[Invite link](https://discordapp.com/api/oauth2/authorize?client_id=675796941992493066&permissions=0&scope=bot)')
+
+    await ctx.send(embed=embed)
+
+client.remove_command('help')
+@client.command()
+async def help(ctx):
+    embed = discord.Embed(title="olisBot or Gary", description='Very annoying according to some Reddit users\n Lists of commadns are:', color=0xeee657)
+    embed.add_field(name='!info', value='Gives information about bot and creator', inline=False)
+    embed.add_field(name='!nine', value='Quotes form Brooklyn 99', inline=False)
+    embed.add_field(name='!final', value='Quotes from Gary in Final Space', inline=False)
+    embed.add_field(name='!google <input>', value='Searches Google for the input given', inline=False)
+    embed.add_field(name='!hacker', value='Gives name and link of articles with over 100 votes on HackerNews', inline=False)
+
+    await ctx.send(embed=embed)
 
 
 @client.event
@@ -87,38 +108,40 @@ async def google(ctx, *args):
         await ctx.send(output_message)
         await ctx.send(answer2)
 
-@client.command
+
+resp = requests.get('https://news.ycombinator.com/')
+resp2 = requests.get('https://news.ycombinator.com/news?p=2')
+soup = BeautifulSoup(resp.text, 'html.parser')
+soup2 = BeautifulSoup(resp2.text, 'html.parser')
+
+links = soup.select('.storylink')
+subtext = soup.select('.subtext')
+links2 = soup2.select('.storylink')
+subtext2 = soup2.select('.subtext')
+
+mega_links = links + links2
+mega_subtext = subtext + subtext2
+
+def sort_story_by_votes(hnlist):
+    return sorted(hnlist, key=lambda k: k['votes'])
+
+def create_custom_hn(mega_links, mega_subtext):
+    hn = []
+    for idx, item in enumerate(links):
+        title = mega_links[idx].getText()
+        href = mega_links[idx].get('href', None)
+        vote = mega_subtext[idx].select('.score')
+        if len(vote):
+            points = int(vote[0].getText().replace('points', ''))
+            if points > 99:
+                hn.append({'title': title, 'link': href, 'votes': points})
+    return sort_story_by_votes(hn)
+
+
+@client.command(pass_context=True)
 async def hacker(ctx):
-    resp = requests.get('https://news.ycombinator.com/')
-    resp2 = requests.get('https://news.ycombinator.com/news?p=2')
-    soup = BeautifulSoup(resp.text, 'html.parser')
-    soup2 = BeautifulSoup(resp2.text, 'html.parser')
-
-    links = soup.select('.storylink')
-    subtext = soup.select('.subtext')
-
-    links2 = soup2.select('.storylink')
-    subtext2 = soup2.select('.subtext')
-
-    mega_links = links + links2
-    mega_subtext = subtext + subtext2
-
-    def sort_story_by_votes(hnlist):
-        return sorted(hnlist, key=lambda k: k['votes'])
-
-    def create_custom_hn(mega_links, mega_subtext):
-        hn = []
-        for idx, item in enumerate(links):
-            title = mega_links[idx].getText()
-            href = mega_links[idx].get('href', None)
-            vote = mega_subtext[idx].select('.score')
-            if len(vote):
-                points = int(vote[0].getText().replace('points', ''))
-                if points > 99:
-                    hn.append({'title': title, 'link': href, 'votes': points})
-        return sort_story_by_votes(hn)
-
     await ctx.send(create_custom_hn(mega_links, mega_subtext))
 
 client.run(token)
+
 
