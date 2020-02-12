@@ -6,7 +6,7 @@ import requests
 from bs4 import BeautifulSoup
 
 
-token = 'Njc1Nzk2OTQxOTkyNDkzMDY2.XkKRKw.PxNSnopmQJFeRb2UFUkXwOEAlIg'
+token = 'your-bot-token'
 client = commands.Bot(command_prefix='!')
 
 
